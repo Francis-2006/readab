@@ -1,5 +1,6 @@
 """Shared pieces used by both signup.py and signin.py."""
 import os
+import uuid
 from datetime import datetime, timedelta, timezone
 
 import jwt
@@ -42,6 +43,11 @@ CREATE TABLE IF NOT EXISTS users (
 );
 CREATE UNIQUE INDEX IF NOT EXISTS users_username_lower_idx ON users (lower(username));
 CREATE UNIQUE INDEX IF NOT EXISTS users_email_lower_idx ON users (lower(email));
+
+CREATE TABLE IF NOT EXISTS revoked_tokens (
+    jti        TEXT PRIMARY KEY,
+    expires_at TIMESTAMPTZ NOT NULL
+);
 """
 
 
@@ -54,6 +60,7 @@ def create_token(user_id: int, username: str) -> str:
     now = datetime.now(timezone.utc)
     payload = {
         "sub": str(user_id),
+        "jti": uuid.uuid4().hex,  # unique token id, used to revoke it on logout
         "username": username,
         "iat": now,
         "exp": now + timedelta(minutes=JWT_EXPIRE_MINUTES),

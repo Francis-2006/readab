@@ -1,10 +1,16 @@
+"""FastAPI dependency helpers for checking authentication state.
+
+These functions verify JWTs, block logged-out tokens, and load the current user for
+protected endpoints.
+"""
 import jwt
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from .db import pool, JWT_SECRET
 
-bearer_scheme = HTTPBearer()  # reads "Authorization: Bearer <token>"
+# This tells FastAPI to read the Authorization header in the usual "Bearer <token>" format.
+bearer_scheme = HTTPBearer()
 
 unauthorized = HTTPException(
     status.HTTP_401_UNAUTHORIZED,
@@ -16,8 +22,19 @@ unauthorized = HTTPException(
 def get_token_payload(
     creds: HTTPAuthorizationCredentials = Depends(bearer_scheme),
 ) -> dict:
-    """Verify the token's signature and expiry, and make sure it was not logged out."""
+    """Validate the JWT signature, expiry, and logout blacklist.
+
+    Args:
+        creds: The bearer token passed in the Authorization header.
+
+    Returns:
+        The decoded JWT payload if the token is valid and not revoked.
+
+    Raises:
+        HTTPException: If the token is missing, expired, invalid, or logged out.
+    """
     try:
+        # Decode the token with the app's secret and require the expected algorithm.
         payload = jwt.decode(creds.credentials, JWT_SECRET, algorithms=["HS256"])
         jti = payload["jti"]
         int(payload["sub"])
@@ -25,6 +42,8 @@ def get_token_payload(
         raise unauthorized
 
     with pool.connection() as conn:
+        # If this jti is in the revoked_tokens table, the user logged out and the token must
+        # not be accepted anywhere else.
         revoked = conn.execute(
             "SELECT 1 FROM revoked_tokens WHERE jti = %s", (jti,)
         ).fetchone()
@@ -34,8 +53,16 @@ def get_token_payload(
 
 
 def get_current_user(payload: dict = Depends(get_token_payload)) -> dict:
-    """Use on any route that needs a signed-in user:
-        def route(user: dict = Depends(get_current_user))
+    """Return the signed-in user record for protected endpoints.
+
+    Args:
+        payload: The validated JWT payload from get_token_payload.
+
+    Returns:
+        A dictionary with the user's public account data.
+
+    Raises:
+        HTTPException: If the user no longer exists in the database.
     """
     with pool.connection() as conn:
         row = conn.execute(

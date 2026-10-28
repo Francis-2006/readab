@@ -1,4 +1,8 @@
-"""Shared pieces used by both signup.py and signin.py."""
+"""Shared authentication helpers and database setup.
+
+This module holds the PostgreSQL pool, the password hasher, the user schema, and the
+JWT helper used by the login and logout flows.
+"""
 import os
 import uuid
 from datetime import datetime, timedelta, timezone
@@ -14,16 +18,16 @@ DATABASE_URL = os.environ["DATABASE_URL"]
 JWT_SECRET = os.environ["JWT_SECRET"]
 JWT_EXPIRE_MINUTES = int(os.getenv("JWT_EXPIRE_MINUTES", "60"))
 
+# This pool is tuned for Neon: the database may close idle connections automatically,
+# so we test each connection before reusing it and recycle older ones.
 pool = ConnectionPool(
     DATABASE_URL,
     min_size=1,
     max_size=5,
     open=False,
-    # Neon closes idle connections, so test each one before handing it out
-    # and replace it if it has gone stale.
     check=ConnectionPool.check_connection,
-    max_idle=60,        # drop extra connections idle for over 60s
-    max_lifetime=300,   # recycle any connection after 5 minutes
+    max_idle=60,
+    max_lifetime=300,
     kwargs={
         "keepalives": 1,
         "keepalives_idle": 30,
@@ -31,6 +35,9 @@ pool = ConnectionPool(
         "keepalives_count": 5,
     },
 )
+
+# Argon2 is a slow, memory-hard password hashing algorithm that is much safer than plain
+# hashing or a fast algorithm that is easier to brute-force.
 ph = PasswordHasher()
 
 SCHEMA = """
@@ -52,15 +59,31 @@ CREATE TABLE IF NOT EXISTS revoked_tokens (
 
 
 def init_db():
+    """Create the login schema and any required support tables if they do not exist.
+
+    Returns:
+        None. The database is updated in place.
+    """
     with pool.connection() as conn:
         conn.execute(SCHEMA)
 
 
 def create_token(user_id: int, username: str) -> str:
+    """Create a signed JWT for a logged-in user.
+
+    Args:
+        user_id: The database id of the user.
+        username: The username to place in the token payload.
+
+    Returns:
+        A JWT string that can be sent to protected API routes.
+    """
     now = datetime.now(timezone.utc)
     payload = {
         "sub": str(user_id),
-        "jti": uuid.uuid4().hex,  # unique token id, used to revoke it on logout
+        # jti is a unique token id. It lets the app revoke one token without blocking all
+        # tokens for the same user when the user logs out.
+        "jti": uuid.uuid4().hex,
         "username": username,
         "iat": now,
         "exp": now + timedelta(minutes=JWT_EXPIRE_MINUTES),

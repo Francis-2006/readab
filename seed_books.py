@@ -1,14 +1,15 @@
-"""Add sample books.
+"""Seed the database with demo book data for local development.
 
-    python seed_books.py            # add samples if the table is empty
-    python seed_books.py --reset    # DROP the books table, recreate it, add samples
+This script adds sample books when the books table is empty. It can also reset the
+books table first if the --reset flag is passed, which is useful when testing data.
 """
 import sys
 
 from auth.db import pool
 from books.db import init_books_table
 
-# (title, author, description, price)   -- prices are placeholders
+# Each item is: title, author, description, price.
+# The values are sample data only; they are placeholders for a simple demo app.
 BOOKS = [
     ("Things Fall Apart", "Chinua Achebe",
      "A story of a proud Igbo leader and the arrival of colonial rule in his village.", 12.99),
@@ -32,9 +33,11 @@ BOOKS = [
      "Practical advice on becoming a better and more effective programmer.", 32.50),
 ]
 
+# Open the shared database pool and create the table if it does not already exist.
 pool.open()
 if "--reset" in sys.argv:
     with pool.connection() as conn:
+        # Reset is useful during development so the sample data can be recreated from scratch.
         conn.execute("DROP TABLE IF EXISTS books")
     print("Dropped old books table.")
 init_books_table()
@@ -42,6 +45,7 @@ init_books_table()
 with pool.connection() as conn:
     count = conn.execute("SELECT count(*) FROM books").fetchone()[0]
     if count:
+        # Avoid duplicating sample data when the table already contains records.
         print(f"books table already has {count} rows, skipping.")
     else:
         for title, author, desc, price in BOOKS:
@@ -51,4 +55,5 @@ with pool.connection() as conn:
                 (title, author, desc, price),
             )
         print(f"Added {len(BOOKS)} books.")
+# Always close the pool so the script does not leave open database connections behind.
 pool.close()

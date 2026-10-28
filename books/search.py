@@ -1,3 +1,8 @@
+"""Search books by title, author, or description.
+
+This route lets users search with a text query and returns paginated results using a
+case-insensitive match.
+"""
 from fastapi import APIRouter, Query
 
 from .db import pool, SUMMARY_COLS, summary
@@ -11,8 +16,20 @@ def search_books(
     page: int = Query(1, ge=1),
     limit: int = Query(20, ge=1, le=50),
 ):
+    """Search for books using a text query.
+
+    Args:
+        q: The search term to look for in titles, authors, and descriptions.
+        page: The page number to return.
+        limit: The maximum number of results in the page.
+
+    Returns:
+        A paginated dictionary containing the query and matching book summaries.
+    """
     q = q.strip()
-    # Escape LIKE wildcards so a search for "100%" or "a_b" is taken literally
+    # Wildcards in SQL LIKE are special: % means “anything” and _ means “any single character”.
+    # We escape them here so a user searching for a literal "100%" or "a_b" is not matched
+    # as a wildcard pattern by accident.
     escaped = q.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
     p = f"%{escaped}%"
     match = "(title ILIKE %s OR author ILIKE %s OR description ILIKE %s)"

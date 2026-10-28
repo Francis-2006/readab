@@ -1,4 +1,8 @@
-"""Shared pieces for the books endpoints."""
+"""Shared database helpers and response formatting for the books routes.
+
+This file defines the books table schema and the small summary formatter used by list and
+search responses. It also keeps file_path out of public API responses on purpose.
+"""
 from auth.db import pool  # same Neon connection pool the auth code uses
 
 BOOKS_SCHEMA = """
@@ -15,16 +19,29 @@ CREATE TABLE IF NOT EXISTS books (
 
 
 def init_books_table():
+    """Create the books table if it does not already exist.
+
+    Returns:
+        None. The schema is created in the shared database connection pool.
+    """
     with pool.connection() as conn:
         conn.execute(BOOKS_SCHEMA)
 
 
 # Short version, used in lists and search results.
-# NOTE: file_path is deliberately NOT here or in the details endpoint.
+# file_path is intentionally excluded so the API does not expose local filesystem details.
 SUMMARY_COLS = "id, title, author, price, cover_image"
 
 
 def summary(row) -> dict:
+    """Convert a database row into a public book summary payload.
+
+    Args:
+        row: A database row containing book fields in the summary column order.
+
+    Returns:
+        A dictionary with the public information returned to clients.
+    """
     return {
         "id": row[0],
         "title": row[1],

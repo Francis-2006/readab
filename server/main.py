@@ -14,6 +14,8 @@ from auth.db import pool, init_db
 from auth import signup, signin, logout, me
 from books.db import init_books_table
 from books import listings, search, details
+from cart import cart_remove as cart_remove
+from cart import cart_add as cart_add, cart_view as cart_view
 
 
 @asynccontextmanager
@@ -57,3 +59,8 @@ app.include_router(me.router)
 app.include_router(listings.router)
 app.include_router(search.router)
 app.include_router(details.router)
+
+# cart signed in users only
+app.include_router(cart_add.router)
+app.include_router(cart_remove.router)
+app.include_router(cart_view.router)

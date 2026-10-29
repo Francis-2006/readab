@@ -38,9 +38,9 @@ def view_cart(user: dict = Depends(get_current_user)):
             "line_total": float(line_total),
         })
         
-        cart_count = len(items)
+        # cart_count = len(items)
 
     return {"items": items,
             "item_count": item_count,
-            "total": float(total),
-            "cart_count": cart_count}
+            "total": float(total)
+            }

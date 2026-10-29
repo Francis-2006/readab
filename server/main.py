@@ -16,6 +16,7 @@ from books.db import init_books_table
 from books import listings, search, details
 from cart import cart_remove as cart_remove
 from cart import cart_add as cart_add, cart_view as cart_view
+from orders import create_orders as create_orders, details_orders as details_orders, listings_orders as listings_orders
 
 
 @asynccontextmanager
@@ -64,3 +65,9 @@ app.include_router(details.router)
 app.include_router(cart_add.router)
 app.include_router(cart_remove.router)
 app.include_router(cart_view.router)
+
+
+# orders signed in users only
+app.include_router(create_orders.router)
+app.include_router(details_orders.router)
+app.include_router(listings_orders.router)

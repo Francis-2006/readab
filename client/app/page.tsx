@@ -168,7 +168,7 @@ export default function Home() {
               <button
                 onClick={handleLogout}
                 disabled={loggingOut}
-                className="rounded-full border border-[#dddcd1] px-4 py-2.5 text-sm font-medium text-[#244a38] transition hover:border-[#244a38] hover:bg-[#244a38] hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+                className="rounded-full cursor-pointer border border-[#dddcd1] px-4 py-2.5 text-sm font-medium text-[#244a38] transition hover:border-[#244a38] hover:bg-[#244a38] hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {loggingOut ? "Logging out..." : "Log out"}
               </button>

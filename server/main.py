@@ -8,6 +8,7 @@ pool alive for the lifetime of the app.
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware 
 
 from auth.db import pool, init_db
 from auth import signup, signin, logout, me
@@ -35,6 +36,14 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="My Project", lifespan=lifespan)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],  # Explicitly allow your frontend
+    allow_credentials=True,
+    allow_methods=["*"],                      # Allows POST, GET, OPTIONS, etc.
+    allow_headers=["*"],                      # Allows content-type, authorization headers, etc.
+)
 
 # Auth routes handle sign-up, sign-in, logout, and reading the signed-in user's details.
 app.include_router(signup.router)

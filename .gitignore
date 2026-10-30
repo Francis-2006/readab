@@ -1,0 +1,25 @@
+# Secrets (matches .env in server/ and client/)
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+
+# Uploaded files: book covers and the paid book files
+server/uploads/
+
+# Client (if it's a Node/React app)
+node_modules/
+dist/
+build/
+
+# Editor and OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.log

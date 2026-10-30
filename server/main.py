@@ -18,7 +18,7 @@ from cart import cart_remove as cart_remove
 from cart import cart_add as cart_add, cart_view as cart_view
 from orders import create_orders as create_orders, details_orders as details_orders, listings_orders as listings_orders
 from payments import initialize as pay_initialize, verify as pay_verify, webhook as pay_webhook
-
+from library import download as library_download, listing as library_listing
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -78,3 +78,8 @@ app.include_router(listings_orders.router)
 app.include_router(pay_initialize.router)
 app.include_router(pay_verify.router)
 app.include_router(pay_webhook.router)
+
+
+# --- library (signed-in users only) ---
+app.include_router(library_download.router)
+app.include_router(library_listing.router)

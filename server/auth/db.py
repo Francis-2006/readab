@@ -12,7 +12,7 @@ from argon2 import PasswordHasher
 from dotenv import load_dotenv
 from psycopg_pool import ConnectionPool
 
-load_dotenv()
+load_dotenv(override=True)
 
 DATABASE_URL = os.environ["DATABASE_URL"]
 JWT_SECRET = os.environ["JWT_SECRET"]

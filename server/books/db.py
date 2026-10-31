@@ -30,7 +30,7 @@ def init_books_table():
 
 # Short version, used in lists and search results.
 # file_path is intentionally excluded so the API does not expose local filesystem details.
-SUMMARY_COLS = "id, title, author, price, cover_image"
+SUMMARY_COLS = "id, title, author, price,description, cover_image,file_path"
 
 
 def summary(row) -> dict:
@@ -47,5 +47,7 @@ def summary(row) -> dict:
         "title": row[1],
         "author": row[2],
         "price": float(row[3]),
-        "cover_image": row[4],
+        "description": row[4],
+        "cover_image": row[5],
+        "file_path": row[6],
     }

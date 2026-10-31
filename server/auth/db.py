@@ -16,7 +16,7 @@ load_dotenv(override=True)
 
 DATABASE_URL = os.environ["DATABASE_URL"]
 JWT_SECRET = os.environ["JWT_SECRET"]
-JWT_EXPIRE_MINUTES = int(os.getenv("JWT_EXPIRE_MINUTES", "60"))
+JWT_EXPIRE_MINUTES = int(os.getenv("JWT_EXPIRE_MINUTES", "1440"))
 
 # This pool is tuned for Neon: the database may close idle connections automatically,
 # so we test each connection before reusing it and recycle older ones.

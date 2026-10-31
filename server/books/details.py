@@ -37,8 +37,8 @@ def book_details(book_id: int):
         "id": row[0],
         "title": row[1],
         "author": row[2],
+        # "description": row[3],
         "price": float(row[3]),
-         "description": row[3],
         "cover_image": row[4],
         "file_path": row[5],
     }

@@ -45,8 +45,6 @@ type Order = {
     total_amount: number;
     status: string;
     created_at: string;
-    /** Relative path or absolute URL of the PDF, once it exists. */
-    file_url: string | null;
     items: OrderItem[];
 };
 
@@ -72,11 +70,6 @@ function formatDate(date: string) {
         hour: "numeric",
         minute: "2-digit",
     });
-}
-
-function toPdfUrl(path: string) {
-    if (/^https?:\/\//i.test(path)) return path;
-    return `${API_URL}/${path.replace(/^\//, "")}`;
 }
 
 function getAuthHeaders(): Record<string, string> {
@@ -105,8 +98,7 @@ function getErrorMessage(data: unknown, fallback: string): string {
 /**
  * Turns the raw API response into a safe `Order`.
  * Tolerant on purpose: numbers that arrive as strings (common with Decimal
- * fields in FastAPI) are converted, and the PDF field is accepted under
- * several common names.
+ * fields in FastAPI) are converted.
  */
 function normalizeOrder(data: unknown): Order {
     const raw = data as Record<string, unknown> | null;
@@ -122,14 +114,11 @@ function normalizeOrder(data: unknown): Order {
         throw new Error("The order response is missing its ID or total. Check the JSON returned by your backend.");
     }
 
-    const fileField = raw.file_path ?? raw.pdf_url ?? raw.download_url ?? raw.file_url ?? null;
-
     return {
         id,
         total_amount: total,
         status: String(raw.status ?? ""),
         created_at: String(raw.created_at ?? ""),
-        file_url: typeof fileField === "string" && fileField.trim() ? fileField.trim() : null,
         items: (raw.items as Record<string, unknown>[]).map((item) => ({
             book_id: Number(item.book_id),
             title: String(item.title ?? "Untitled"),
@@ -286,7 +275,71 @@ function OrderSummary({ order, status }: { order: Order; status: StatusInfo }) {
     );
 }
 
-function OrderItems({ order }: { order: Order }) {
+function DownloadButton({ bookId }: { bookId: number }) {
+    const [downloading, setDownloading] = useState(false);
+    const [error, setError] = useState("");
+
+    async function downloadBook() {
+        setError("");
+
+        const downloadTab = window.open("about:blank", "_blank");
+        if (!downloadTab) {
+            setError("Allow pop-ups for this site to download your book.");
+            return;
+        }
+        downloadTab.opener = null;
+        setDownloading(true);
+
+        try {
+            const response = await fetch(`${API_URL}/books/${bookId}/download`, {
+                method: "GET",
+                headers: { Accept: "application/json", ...getAuthHeaders() },
+                cache: "no-store",
+            });
+            const text = await response.text();
+
+            let data: unknown = {};
+            try {
+                data = text ? JSON.parse(text) : {};
+            } catch {
+                throw new Error(`The server returned an unexpected response (HTTP ${response.status}).`);
+            }
+
+            if (!response.ok) {
+                throw new Error(getErrorMessage(data, `Unable to download this book (HTTP ${response.status}).`));
+            }
+
+            if (typeof data !== "object" || data === null || !("download_url" in data) || typeof data.download_url !== "string") {
+                throw new Error("The server did not return a download link. Please try again.");
+            }
+
+            const downloadUrl = new URL(data.download_url, API_URL);
+            if (downloadUrl.protocol !== "https:" && downloadUrl.protocol !== "http:") {
+                throw new Error("The server returned an invalid download link.");
+            }
+
+            downloadTab.location.href = downloadUrl.href;
+            window.history.back();
+        } catch (err) {
+            downloadTab.close();
+            setError(err instanceof Error ? err.message : "Something went wrong while preparing your download.");
+        } finally {
+            setDownloading(false);
+        }
+    }
+
+    return (
+        <div className="mt-3">
+            <button type="button" onClick={() => void downloadBook()} disabled={downloading} className={`${primaryBtn} px-4 py-2 cursor-pointer`}>
+                {downloading ? <LoaderCircle size={16} className="animate-spin" /> : <Download size={16} />}
+                {downloading ? "Preparing download..." : "Download"}
+            </button>
+            {error && <p role="alert" className="mt-2 text-sm text-red-700">{error}</p>}
+        </div>
+    );
+}
+
+function OrderItems({ order, canDownload }: { order: Order; canDownload: boolean }) {
     const bookCount = order.items.reduce((total, item) => total + item.quantity, 0);
 
     return (
@@ -323,6 +376,7 @@ function OrderItems({ order }: { order: Order }) {
                                     <p className="mt-2 text-sm text-[#244a38]/65">
                                         {formatPrice(item.price)} × {item.quantity}
                                     </p>
+                                    {canDownload && <DownloadButton bookId={item.book_id} />}
                                 </div>
                             </div>
 
@@ -342,42 +396,6 @@ function OrderItems({ order }: { order: Order }) {
                     </div>
                     <p className="text-2xl font-bold">{formatPrice(order.total_amount)}</p>
                 </div>
-            </div>
-        </section>
-    );
-}
-
-function DownloadSection({ order, onRefresh }: { order: Order; onRefresh: () => void }) {
-    const ready = Boolean(order.file_url);
-
-    return (
-        <section className={`mt-6 p-5 sm:p-6 ${card}`}>
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                    <h2 className="font-bold">{ready ? "Your PDF is ready" : "Preparing your PDF"}</h2>
-                    <p className="mt-1 text-sm leading-6 text-[#244a38]/65">
-                        {ready
-                            ? "Your payment is confirmed. Use the button to open your PDF."
-                            : "Your payment is confirmed, but the file isn't available yet. Try refreshing in a moment."}
-                    </p>
-                </div>
-
-                {ready ? (
-                    <a
-                        href={toPdfUrl(order.file_url as string)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className={`${primaryBtn} shrink-0`}
-                    >
-                        <Download size={17} />
-                        Download PDF
-                    </a>
-                ) : (
-                    <button type="button" onClick={onRefresh} className={`${secondaryBtn} shrink-0`}>
-                        <RefreshCw size={16} />
-                        Refresh
-                    </button>
-                )}
             </div>
         </section>
     );
@@ -493,8 +511,7 @@ export default function OrderDetailsPage() {
                 {!loading && !error && order && status && (
                     <>
                         <OrderSummary order={order} status={status} />
-                        <OrderItems order={order} />
-                        {status.isPaid && <DownloadSection order={order} onRefresh={() => void loadOrder()} />}
+                        <OrderItems order={order} canDownload={order.status.toLowerCase() === "paid"} />
                         <PaymentInfo status={status} />
 
                         <div className="mt-7 flex flex-col gap-3 sm:flex-row">

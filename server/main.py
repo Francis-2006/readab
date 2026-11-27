@@ -86,4 +86,4 @@ app.include_router(library_listing.router)
 
 @app.api_route("/", methods=["GET", "HEAD"])
 def root():
-    return {"message": "RECVALI API is running"}
+    return {"message": "READAB API is running"}

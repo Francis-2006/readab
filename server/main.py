@@ -83,3 +83,7 @@ app.include_router(pay_webhook.router)
 # --- library (signed-in users only) ---
 app.include_router(library_download.router)
 app.include_router(library_listing.router)
+
+@app.api_route("/", methods=["GET", "HEAD"])
+def root():
+    return {"message": "RECVALI API is running"}

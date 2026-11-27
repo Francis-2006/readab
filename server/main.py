@@ -39,7 +39,7 @@ async def lifespan(app: FastAPI):
     pool.close()
 
 
-app = FastAPI(title="My Project", lifespan=lifespan)
+app = FastAPI(title="Readab", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,

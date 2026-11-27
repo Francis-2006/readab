@@ -25,7 +25,7 @@ def book_details(book_id: int):
     """
     with pool.connection() as conn:
         row = conn.execute(
-            "SELECT id, title, author, description, price, cover_image "
+            "SELECT id, title, author, description, price, cover_image, file_path"
             "FROM books WHERE id = %s",
             (book_id,),
         ).fetchone()
@@ -37,7 +37,8 @@ def book_details(book_id: int):
         "id": row[0],
         "title": row[1],
         "author": row[2],
-        "description": row[3],
-        "price": float(row[4]),
-        "cover_image": row[5],
+        # "description": row[3],
+        "price": float(row[3]),
+        "cover_image": row[4],
+        "file_path": row[5],
     }

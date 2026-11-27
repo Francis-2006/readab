@@ -285,10 +285,10 @@ export default function Home() {
       setCartItemCount(
         Number(
           data.item_count ??
-            items.reduce(
-              (sum, item) => sum + Number(item.quantity || 0),
-              0
-            )
+          items.reduce(
+            (sum, item) => sum + Number(item.quantity || 0),
+            0
+          )
         )
       );
     } catch (error) {
@@ -440,10 +440,10 @@ export default function Home() {
       if (!paymentResponse.ok) {
         throw new Error(
           `Order #${orderId} was created, but payment could not be started. ` +
-            (await getErrorMessage(
-              paymentResponse,
-              "Please try again."
-            ))
+          (await getErrorMessage(
+            paymentResponse,
+            "Please try again."
+          ))
         );
       }
 
@@ -527,9 +527,9 @@ export default function Home() {
 
   const joinedDate = user?.created_at
     ? new Date(user.created_at).toLocaleDateString("en", {
-        month: "long",
-        year: "numeric",
-      })
+      month: "long",
+      year: "numeric",
+    })
     : "";
 
   return (
@@ -753,9 +753,8 @@ export default function Home() {
               <p className="text-sm text-[#7c8178]">
                 {loadingBooks
                   ? "Finding your books..."
-                  : `${filteredBooks.length} ${
-                      filteredBooks.length === 1 ? "book" : "books"
-                    }`}
+                  : `${filteredBooks.length} ${filteredBooks.length === 1 ? "book" : "books"
+                  }`}
               </p>
               <span className="text-xs uppercase tracking-[0.16em] text-[#858980]">
                 Readab library
@@ -812,15 +811,14 @@ export default function Home() {
                     return (
                       <article
                         key={book.id}
-                        className="group flex min-h-[390px] flex-col rounded-2xl border border-[#e8e5db] bg-[#fbfaf6] p-5 transition duration-200 hover:-translate-y-1 hover:border-[#c4cebd] hover:shadow-lg hover:shadow-[#283b2c]/5 sm:p-6"
+                        className="group relative flex min-h-[390px] flex-col rounded-2xl border border-[#e8e5db] bg-[#fbfaf6] p-5 transition duration-200 hover:-translate-y-1 hover:border-[#c4cebd] hover:shadow-lg hover:shadow-[#283b2c]/5 sm:p-6"
                       >
                         <div className="flex items-start justify-between gap-3">
                           {book.cover_image ? (
                             <img
                               src={book.cover_image}
                               alt={`Cover of ${book.title}`}
-                              className="h-40 w-28 shrink-0 rounded-lg object-cover shadow-md shadow-black/10"
-                            />
+                              className="w-full h-full shrink-0 rounded-lg object-cover shadow-md shadow-black/10" />
                           ) : (
                             <div className="flex h-40 w-28 shrink-0 items-center justify-center rounded-lg border border-[#dce1d4] bg-[#e9ecdf] px-3 text-center">
                               <span className="font-serif text-sm leading-5 text-[#45604a]">
@@ -829,7 +827,7 @@ export default function Home() {
                             </div>
                           )}
 
-                          <span className="rounded-full border border-[#e6e3d9] px-3 py-1 text-[10px] tracking-[0.15em] text-[#858980]">
+                          <span className="absolute right-1 rounded-full border border-[#e6e3d9] bg-white px-3 py-1 text-[10px] tracking-[0.15em] text-[#858980]">
                             {String(index + 1).padStart(2, "0")}
                           </span>
                         </div>
@@ -857,7 +855,7 @@ export default function Home() {
                             type="button"
                             onClick={() => handleAddToCart(book)}
                             disabled={addingBookId === book.id}
-                            className="inline-flex items-center justify-center gap-2 rounded-full bg-[#244a38] px-4 py-3 text-xs font-semibold text-white transition hover:bg-[#315c46] disabled:cursor-not-allowed disabled:opacity-60 sm:text-sm"
+                            className="inline-flex items-center cursor-pointer justify-center gap-2 rounded-full bg-[#244a38] px-4 py-3 text-xs font-semibold text-white transition hover:bg-[#315c46] disabled:cursor-not-allowed disabled:opacity-60 sm:text-sm"
                           >
                             {addingBookId === book.id ? (
                               <LoaderCircle className="h-4 w-4 animate-spin" />
@@ -893,11 +891,10 @@ export default function Home() {
           aria-label="Close shopping cart"
           tabIndex={cartOpen ? 0 : -1}
           onClick={() => setCartOpen(false)}
-          className={`fixed inset-0 z-40 cursor-default bg-[#14251b]/40 backdrop-blur-[2px] transition-opacity duration-300 ${
-            cartOpen
+          className={`fixed inset-0 z-40 cursor-default bg-[#14251b]/40 backdrop-blur-[2px] transition-opacity duration-300 ${cartOpen
               ? "pointer-events-auto opacity-100"
               : "pointer-events-none opacity-0"
-          }`}
+            }`}
         />
 
         {/* Cart drawer */}
@@ -906,9 +903,8 @@ export default function Home() {
           aria-modal="true"
           aria-label="Shopping cart"
           aria-hidden={!cartOpen}
-          className={`fixed inset-y-0 right-0 z-50 flex w-full max-w-md flex-col border-l border-[#e8e5db] bg-[#fbfaf6] shadow-2xl shadow-black/10 transition-transform duration-300 ease-in-out ${
-            cartOpen ? "translate-x-0" : "translate-x-full"
-          }`}
+          className={`fixed inset-y-0 right-0 z-50 flex w-full max-w-md flex-col border-l border-[#e8e5db] bg-[#fbfaf6] shadow-2xl shadow-black/10 transition-transform duration-300 ease-in-out ${cartOpen ? "translate-x-0" : "translate-x-full"
+            }`}
         >
           <div className="flex items-center justify-between border-b border-[#e8e5db] px-5 py-5 sm:px-7">
             <div>
@@ -943,7 +939,7 @@ export default function Home() {
               <button
                 type="button"
                 onClick={() => void loadCart()}
-                className="mt-2 font-semibold underline underline-offset-4"
+                className="mt-2 font-semibold cursor-pointer underline underline-offset-4"
               >
                 Retry loading cart
               </button>
@@ -952,7 +948,7 @@ export default function Home() {
                 <button
                   type="button"
                   onClick={() => router.push("/orders")}
-                  className="ml-4 mt-2 font-semibold underline underline-offset-4"
+                  className="ml-4 mt-2 font-semibold cursor-pointer underline underline-offset-4"
                 >
                   View order #{pendingOrderId}
                 </button>
@@ -990,7 +986,7 @@ export default function Home() {
                       .getElementById("books")
                       ?.scrollIntoView({ behavior: "smooth" });
                   }}
-                  className="mt-6 rounded-full bg-[#244a38] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#315c46]"
+                  className="mt-6 rounded-full cursor-pointer bg-[#244a38] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#315c46]"
                 >
                   Explore books
                 </button>
@@ -1042,7 +1038,7 @@ export default function Home() {
                               handleRemoveFromCart(item.book_id)
                             }
                             disabled={removingBookId === item.book_id}
-                            className="text-xs font-medium text-[#9a6259] underline underline-offset-4 transition hover:text-red-700 disabled:cursor-not-allowed disabled:opacity-50"
+                            className="text-xs cursor-pointer font-medium text-[#9a6259] underline underline-offset-4 transition hover:text-red-700 disabled:cursor-not-allowed disabled:opacity-50"
                           >
                             {removingBookId === item.book_id ? (
                               <span className="inline-flex items-center gap-1">
@@ -1080,7 +1076,7 @@ export default function Home() {
               disabled={
                 cart.length === 0 || loadingCart || creatingOrder
               }
-              className="mt-5 flex w-full items-center justify-center gap-2 rounded-full bg-[#244a38] px-5 py-4 text-sm font-semibold text-white transition hover:bg-[#315c46] disabled:cursor-not-allowed disabled:opacity-40"
+              className="mt-5 flex cursor-pointer w-full items-center justify-center gap-2 rounded-full bg-[#244a38] px-5 py-4 text-sm font-semibold text-white transition hover:bg-[#315c46] disabled:cursor-not-allowed disabled:opacity-40"
             >
               {creatingOrder ? (
                 <>
@@ -1098,7 +1094,7 @@ export default function Home() {
             <button
               type="button"
               onClick={() => setCartOpen(false)}
-              className="mt-3 w-full rounded-full border border-[#dddcd1] px-5 py-3 text-sm font-medium text-[#244a38] transition hover:bg-white"
+              className="mt-3 w-full cursor-pointer rounded-full border border-[#dddcd1] px-5 py-3 text-sm font-medium text-[#244a38] transition hover:bg-white"
             >
               Continue browsing
             </button>
@@ -1106,7 +1102,7 @@ export default function Home() {
             <button
               type="button"
               onClick={() => router.push("/orders")}
-              className="mt-3 inline-flex w-full items-center justify-center gap-2 px-5 py-2 text-xs font-medium text-[#687267] transition hover:text-[#244a38]"
+              className="mt-3 inline-flex cursor-pointer w-full items-center justify-center gap-2 px-5 py-2 text-xs font-medium text-[#687267] transition hover:text-[#244a38]"
             >
               <Package className="h-4 w-4" />
               View order history

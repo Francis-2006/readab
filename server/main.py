@@ -43,7 +43,7 @@ app = FastAPI(title="Readab", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # Explicitly allow your frontend
+    allow_origins=["https://readab.vercel.app"],  # Explicitly allow your frontend
     allow_credentials=True,
     allow_methods=["*"],                      # Allows POST, GET, OPTIONS, etc.
     allow_headers=["*"],                      # Allows content-type, authorization headers, etc.
